@@ -1,0 +1,93 @@
+<html>
+
+    <head>
+        <title>Book page</title>
+        <link rel="stylesheet" type="text/css" href="mystyle.css">
+    </head>
+
+    <body>
+        <br><br>
+        <h1>Create a new book</h1>
+        <input type="text" id="author" value="Author"><br>
+        <input type="text" id="title" value="Title"><br>
+        <label for="price">Input price</label>
+        <input type="number" id="price" min="1.00" max="200.00" step=".01" required><br>
+        <label for="genre">Choose genre:</label>
+        <select name="genre" id="genre">
+            <option value="Science fiction">Science fiction</option>
+            <option value="Satire">Satire</option>
+            <option value="Drama">Drama</option>
+            <option value="Action and Adventure">Action and Adventure</option>
+            <option value="Romance">Romance</option>
+            <option value="Mystery">Mystery</option>
+            <option value="Horror">Horror</option>
+        </select>
+        <br><br>
+        <input type="button" id="createBook" value="Create" onclick="createValidation()"><br>
+        <br><br>
+        <h1>Search a book</h1>
+        <label for="keyword">Input a keyword of the book title:</label>
+        <input type="text" id="keyword" value="Keyword"><br><br>
+        <input type="button" id="searchBook" value="Search" onclick="searchValidation()"><br>
+        <p id="result"></p>
+
+        <script type="text/javascript">
+            const xhr = new XMLHttpRequest();
+
+            function createValidation(){
+                var price = document.getElementById('price');
+                var dec = precision(price.value);
+                if (!price.checkValidity() || dec!=2 ){
+                    alert("Price should have 2 decimal places in bounds [1.00, 200.00]");
+                }else{
+                    xhr.open('POST','http://localhost:3000/books/');
+                    xhr.setRequestHeader('Content-Type','application/json');
+                    const book = {
+                        "author": document.getElementById('author').value,
+                        "title": document.getElementById('title').value,
+                        "genre": document.getElementById('genre').value,
+                        "price": document.getElementById('price').value
+                    };
+                    xhr.send(JSON.stringify(book));
+                    xhr.onreadystatechange = function(){
+                        if(xhr.readyState === xhr.DONE){
+                            if (xhr.status === 200) {
+                                alert(this.responseText);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function searchValidation(){
+                var key = document.getElementById('keyword').value;
+                if( key === null || key == " "){
+                    alert("Please enter a word to search");
+                }else{
+                    xhr.open('GET', 'http://localhost:3000/books/'+key+'');
+                    xhr.send();
+                    xhr.onreadystatechange = function(){
+                        if (xhr.readyState == 4){
+                            if (xhr.status == 200){
+                                const test = document.getElementById('result');
+                                var resultBooks = xhr.responseText;
+                                if (resultBooks == "[]")
+                                    test.innerHTML = "No book found";
+                                else
+                                    test.innerHTML = xhr.responseText; 
+                            }
+                        }
+                    };
+                }
+            }
+
+            function precision(value) {
+                if(Math.floor(value) === value) return 0;
+                return value.toString().split(".")[1].length || 0;
+            }
+
+        </script>
+
+    </body>
+    
+</html>
